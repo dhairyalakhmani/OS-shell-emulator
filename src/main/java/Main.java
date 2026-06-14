@@ -9,9 +9,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         Set<String> set = new HashSet<>();
-        set.add("exit");
-        set.add("echo");
-        set.add("type");
+        set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd");
         while (true) {
             System.out.print("$ ");
             String input = sc.nextLine().trim();
@@ -21,6 +19,9 @@ public class Main {
             String arguments = parts.length > 1 ? parts[1] : "";
             if (command.equals("exit")) break;
             else if (command.equals("echo")) System.out.println(arguments);
+            else if(command.equals("pwd")){
+                System.out.println(System.getProperty("user.dir"));
+            }
             else if(command.equals("type")){
                 if(set.contains(arguments)) System.out.println(arguments + " is a shell builtin");
                 else {
