@@ -2,13 +2,17 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        // TODO: Uncomment the code below to pass the first stage
         Scanner sc = new Scanner(System.in);
-        while(true) {
+        while (true) {
             System.out.print("$ ");
-            String command = sc.nextLine();
-            if(command.equals("exit")) break;
-            System.out.println(command + ": command not found");
+            String input = sc.nextLine().trim();
+            if (input.isEmpty()) continue;
+            String[] parts = input.split(" ", 2);
+            String command = parts[0];
+            String arguments = parts.length > 1 ? parts[1] : "";
+            if (command.equals("exit") && arguments.equals("0")) break;
+            else if (command.equals("echo")) System.out.println(arguments);
+            else System.out.println(command + ": command not found");
         }
     }
 }
