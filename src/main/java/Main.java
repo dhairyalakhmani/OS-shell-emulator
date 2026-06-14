@@ -1,3 +1,6 @@
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -20,9 +23,27 @@ public class Main {
             else if (command.equals("echo")) System.out.println(arguments);
             else if(command.equals("type")){
                 if(set.contains(arguments)) System.out.println(arguments + " is a shell builtin");
-                else System.out.println(arguments + ": not found");
+                else {
+                    String path = System.getenv("PATH");
+                    if(path != null && !path.isEmpty()){
+                        String[] directories = path.split(File.pathSeparator);
+                        hasPath(directories, arguments);
+                    }
+                }
             }
             else System.out.println(command + ": command not found");
         }
+    }
+    private static void hasPath(String[] directories, String arguments){
+        boolean found = false;
+        for(String dir: directories){
+            Path fullPath = Path.of(dir, arguments);
+            if(Files.exists(fullPath) && Files.isExecutable(fullPath)){
+                System.out.println(arguments + " is " + fullPath.toString());
+                found = true;
+                break;
+            }
+        }
+        if(!found) System.out.println(arguments + ": not found");
     }
 }
