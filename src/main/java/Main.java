@@ -23,14 +23,22 @@ public class Main {
                 System.out.println(System.getProperty("user.dir"));
             }
             else if(command.equals("cd")){
-                Path targetPath = Path.of(arguments);
-                if(targetPath.isAbsolute()){
-                    if(Files.exists(targetPath) && Files.isDirectory(targetPath)){
-                        System.setProperty("user.dir", targetPath.normalize().toString());
-                    }
-                    else{
-                        System.out.println("cd: " + arguments + ": No such file or directory");
-                    }
+                Path targetPath;
+                if(arguments.equals("~")){
+                    targetPath = Path.of(System.getenv("HOME"));
+                }
+                else if (Path.of(arguments).isAbsolute()) {
+                    targetPath = Path.of(arguments).normalize();
+                }
+                else {
+                    Path currentPath = Path.of(System.getProperty("user.dir"));
+                    targetPath = currentPath.resolve(arguments).normalize();
+                }
+
+                if(Files.exists(targetPath) && Files.isDirectory(targetPath)){
+                    System.setProperty("user.dir", targetPath.normalize().toString());
+                }else{
+                    System.out.println("cd: " + arguments + ": No such file or directory");
                 }
             }
             else if(command.equals("type")){
