@@ -22,6 +22,17 @@ public class Main {
             else if(command.equals("pwd")){
                 System.out.println(System.getProperty("user.dir"));
             }
+            else if(command.equals("cd")){
+                Path targetPath = Path.of(arguments);
+                if(targetPath.isAbsolute()){
+                    if(Files.exists(targetPath) && Files.isDirectory(targetPath)){
+                        System.setProperty("user.dir", targetPath.normalize().toString());
+                    }
+                    else{
+                        System.out.println("cd: " + arguments + ": No such file or directory");
+                    }
+                }
+            }
             else if(command.equals("type")){
                 if(set.contains(arguments)) System.out.println(arguments + " is a shell builtin");
                 else {
