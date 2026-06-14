@@ -31,7 +31,17 @@ public class Main {
                     }
                 }
             }
-            else System.out.println(command + ": command not found");
+            else{
+                String[] commandArray = input.split(" ");
+                ProcessBuilder processBuilder = new ProcessBuilder(commandArray);
+                processBuilder.inheritIO();
+                try{
+                    Process process = processBuilder.start();
+                    process.waitFor();
+                } catch(java.io.IOException e){
+                    System.out.println(command + ": command not found");
+                }
+            }
         }
     }
     private static void hasPath(String[] directories, String arguments){
