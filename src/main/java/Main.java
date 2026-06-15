@@ -1,22 +1,20 @@
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         Set<String> set = new HashSet<>();
-        set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd");
+        set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd"); set.add("cat");
         while (true) {
             System.out.print("$ ");
             String input = sc.nextLine().trim();
             if (input.isEmpty()) continue;
-            String[] parts = input.split(" ", 2);
-            String command = parts[0];
-            String arguments = parts.length > 1 ? parts[1] : "";
+            List<String> parsedInput = parseInput(input);
+            String command = parsedInput.get(0);
+            String arguments = input.substring(command.length()).trim();
             if (command.equals("exit")) break;
             else if (command.equals("echo")) System.out.println(arguments);
             else if(command.equals("pwd")){
@@ -75,5 +73,23 @@ public class Main {
             }
         }
         if(!found) System.out.println(arguments + ": not found");
+    }
+    private static List<String> parseInput(String input){
+        List<String> tokens = new ArrayList<>();
+        StringBuilder currentToken = new StringBuilder();
+        boolean isSingleQuote = false;
+
+        for(int i = 0; i < input.length(); i++){
+            char c = input.charAt(i);
+            if(c == '\'') isSingleQuote = !isSingleQuote;
+            else if(c == ' ' && !isSingleQuote){
+                if(!currentToken.isEmpty()){
+                    tokens.add(currentToken.toString());
+                    currentToken.setLength(0);
+                }
+            }
+            else currentToken.append(c);
+        }
+        return tokens;
     }
 }
