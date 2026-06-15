@@ -7,7 +7,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         Set<String> set = new HashSet<>();
-        set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd"); set.add("cat");
+        set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd");
         while (true) {
             System.out.print("$ ");
             String input = sc.nextLine().trim();
