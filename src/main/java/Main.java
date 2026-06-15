@@ -14,9 +14,9 @@ public class Main {
             if (input.isEmpty()) continue;
             List<String> parsedInput = parseInput(input);
             String command = parsedInput.get(0);
-            String arguments = input.substring(command.length()).trim();
+            String arguments = parsedInput.size() > 0 ? parsedInput.get(1) : "";
             if (command.equals("exit")) break;
-            else if (command.equals("echo")) System.out.println(arguments);
+            else if (command.equals("echo")) System.out.println(String.join(" ", parsedInput.subList(1, parsedInput.size())));
             else if(command.equals("pwd")){
                 System.out.println(System.getProperty("user.dir"));
             }
@@ -50,8 +50,7 @@ public class Main {
                 }
             }
             else{
-                String[] commandArray = input.split(" ");
-                ProcessBuilder processBuilder = new ProcessBuilder(commandArray);
+                ProcessBuilder processBuilder = new ProcessBuilder(parsedInput);
                 processBuilder.inheritIO();
                 try{
                     Process process = processBuilder.start();
@@ -90,6 +89,7 @@ public class Main {
             }
             else currentToken.append(c);
         }
+        if (!currentToken.isEmpty()) tokens.add(currentToken.toString());
         return tokens;
     }
 }
