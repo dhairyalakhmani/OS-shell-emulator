@@ -76,11 +76,20 @@ public class Main {
     private static List<String> parseInput(String input){
         List<String> tokens = new ArrayList<>();
         StringBuilder currentToken = new StringBuilder();
-        boolean isSingleQuote = false;
-        boolean isDoubleQuote = false;
+        boolean isSingleQuote = false, isDoubleQuote = false, escapeNext = false;
         for(int i = 0; i < input.length(); i++){
             char c = input.charAt(i);
-            if(c == '\'' && !isDoubleQuote) isSingleQuote = !isSingleQuote;
+            if(escapeNext) {
+                if(isDoubleQuote && c != '"' && c != '\\' && c != '$'){
+                    currentToken.append('\\');
+                    currentToken.append(c);
+                }
+                else currentToken.append(c);
+                escapeNext = false;
+                continue;
+            }
+            if(c == '\\' && !isSingleQuote) escapeNext = true;
+            else if(c == '\'' && !isDoubleQuote) isSingleQuote = !isSingleQuote;
             else if(c == '\"' && !isSingleQuote) isDoubleQuote = !isDoubleQuote;
             else if(c == ' ' && !isSingleQuote && !isDoubleQuote){
                 if(!currentToken.isEmpty()){
