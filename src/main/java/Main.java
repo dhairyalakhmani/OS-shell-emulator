@@ -14,7 +14,7 @@ public class Main {
             if (input.isEmpty()) continue;
             List<String> parsedInput = parseInput(input);
             String command = parsedInput.get(0);
-            String arguments = parsedInput.size() > 0 ? parsedInput.get(1) : "";
+            String arguments = parsedInput.size() > 1 ? parsedInput.get(1) : "";
             if (command.equals("exit")) break;
             else if (command.equals("echo")) System.out.println(String.join(" ", parsedInput.subList(1, parsedInput.size())));
             else if(command.equals("pwd")){
