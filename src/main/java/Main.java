@@ -77,11 +77,12 @@ public class Main {
         List<String> tokens = new ArrayList<>();
         StringBuilder currentToken = new StringBuilder();
         boolean isSingleQuote = false;
-
+        boolean isDoubleQuote = false;
         for(int i = 0; i < input.length(); i++){
             char c = input.charAt(i);
-            if(c == '\'') isSingleQuote = !isSingleQuote;
-            else if(c == ' ' && !isSingleQuote){
+            if(c == '\'' && !isDoubleQuote) isSingleQuote = !isSingleQuote;
+            else if(c == '\"' && !isSingleQuote) isDoubleQuote = !isDoubleQuote;
+            else if(c == ' ' && !isSingleQuote && !isDoubleQuote){
                 if(!currentToken.isEmpty()){
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
