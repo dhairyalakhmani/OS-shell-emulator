@@ -30,6 +30,14 @@ public class Main {
                     break;
                 }
             }
+            if (foundPath) {
+                Path path = Path.of(targetFilePath);
+                if (isAppend) {
+                    Files.writeString(path, "", StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                } else {
+                    Files.writeString(path, "", StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                }
+            }
             String command = parsedInput.get(0);
             String arguments = parsedInput.size() > 1 ? parsedInput.get(1) : "";
             if (command.equals("exit")) break;
