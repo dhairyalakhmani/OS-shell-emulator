@@ -37,7 +37,8 @@ public class Main {
             List<Job> finished = new ArrayList<>();
             for (Job job : preSorted) {
                 if (!job.process.isAlive()) {
-                    System.out.println(String.format("[%d]%c  %-24s%s", job.id, preMarkers.get(job.id), "Done", job.command));
+                    String printCmd = job.command.replaceAll("\\s*&$", "");
+                    System.out.println(String.format("[%d]%c  %-24s%s", job.id, preMarkers.get(job.id), "Done", printCmd));
                     finished.add(job);
                 }
             }
@@ -103,8 +104,9 @@ public class Main {
 
                 for (Job job : sortedJobs) {
                     String status = job.process.isAlive() ? "Running" : "Done";
+                    String printCmd = job.process.isAlive() ? job.command : job.command.replaceAll("\\s*&$", "");
                     if (sb.length() > 0) sb.append("\n");
-                    sb.append(String.format("[%d]%c  %-24s%s", job.id, markers.get(job.id), status, job.command));
+                    sb.append(String.format("[%d]%c  %-24s%s", job.id, markers.get(job.id), status, printCmd));
                     if (!job.process.isAlive()) toRemove.add(job);
                 }
                 backgroundJobs.removeAll(toRemove);
