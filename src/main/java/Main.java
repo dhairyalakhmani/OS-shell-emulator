@@ -85,6 +85,57 @@ public class Main {
 
             if (parsedInput.isEmpty()) continue;
 
+            int pipeIndex = parsedInput.indexOf("|");
+            if (pipeIndex != -1) {
+                List<String> leftCmd = parsedInput.subList(0, pipeIndex);
+                List<String> rightCmd = parsedInput.subList(pipeIndex + 1, parsedInput.size());
+
+                ProcessBuilder pb1 = new ProcessBuilder(leftCmd);
+                ProcessBuilder pb2 = new ProcessBuilder(rightCmd);
+
+                pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+                if (foundPath) {
+                    File myFile = new File(targetFilePath);
+                    ProcessBuilder.Redirect redirect;
+                    if (isAppend) redirect = ProcessBuilder.Redirect.appendTo(myFile);
+                    else redirect = ProcessBuilder.Redirect.to(myFile);
+                    if (isError) {
+                        pb2.redirectError(redirect);
+                        pb2.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                    } else {
+                        pb2.redirectOutput(redirect);
+                        pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
+                    }
+                } else {
+                    pb2.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                    pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
+                }
+
+                try {
+                    List<Process> pipeline = ProcessBuilder.startPipeline(Arrays.asList(pb1, pb2));
+                    Process lastProcess = pipeline.get(pipeline.size() - 1);
+                    if (isBackground) {
+                        int nextId = 1;
+                        while (true) {
+                            boolean idFound = false;
+                            for (Job j : backgroundJobs) {
+                                if (j.id == nextId) { idFound = true; break; }
+                            }
+                            if (!idFound) break;
+                            nextId++;
+                        }
+                        System.out.println("[" + nextId + "] " + lastProcess.pid());
+                        backgroundJobs.add(new Job(nextId, lastProcess, input));
+                    } else {
+                        lastProcess.waitFor();
+                    }
+                } catch (Exception e) {
+                    writeOutput(parsedInput.get(0) + ": command not found", foundPath, targetFilePath, isAppend, isError);
+                }
+                continue;
+            }
+
             String command = parsedInput.get(0);
             String arguments = parsedInput.size() > 1 ? parsedInput.get(1) : "";
 
