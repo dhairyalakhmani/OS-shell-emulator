@@ -72,11 +72,19 @@ public class Main {
             else if (command.equals("echo")) writeOutput(String.join(" ", parsedInput.subList(1, parsedInput.size())), foundPath, targetFilePath, isAppend, isError);
             else if(command.equals("jobs")) {
                 StringBuilder sb = new StringBuilder();
+                List<Job> activeJobs = new ArrayList<>();
                 for (Job job : backgroundJobs) {
                     if (job.process.isAlive()) {
-                        if (sb.length() > 0) sb.append("\n");
-                        sb.append(String.format("[%d]+  %-24s%s", job.id, "Running", job.command));
+                        activeJobs.add(job);
                     }
+                }
+                for (int j = 0; j < activeJobs.size(); j++) {
+                    if (sb.length() > 0) sb.append("\n");
+                    Job job = activeJobs.get(j);
+                    char marker = ' ';
+                    if (j == activeJobs.size() - 1) marker = '+';
+                    else if (j == activeJobs.size() - 2) marker = '-';
+                    sb.append(String.format("[%d]%c  %-24s%s", job.id, marker, "Running", job.command));
                 }
                 if (sb.length() > 0) writeOutput(sb.toString(), foundPath, targetFilePath, isAppend, isError);
             }
