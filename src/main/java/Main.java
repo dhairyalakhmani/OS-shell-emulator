@@ -9,6 +9,7 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         Set<String> set = new HashSet<>();
         set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd"); set.add("jobs");
+        int jobIdCounter = 1;
         while (true) {
             System.out.print("$ ");
             String input = sc.nextLine().trim();
@@ -93,7 +94,12 @@ public class Main {
                 }
                 try{
                     Process process = processBuilder.start();
-                    if(!isBackground) process.waitFor();
+                    if(isBackground) {
+                        System.out.println("[" + jobIdCounter + "] " + process.pid());
+                        jobIdCounter++;
+                    } else {
+                        process.waitFor();
+                    }
                 } catch(java.io.IOException e){
                     writeOutput(command + ": command not found", foundPath, targetFilePath, isAppend, isError);
                 }
