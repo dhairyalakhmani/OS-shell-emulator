@@ -8,14 +8,19 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         Set<String> set = new HashSet<>();
-        set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd");
+        set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd"); set.add("jobs");
         while (true) {
             System.out.print("$ ");
             String input = sc.nextLine().trim();
             if (input.isEmpty()) continue;
             String targetFilePath = "";
-            boolean isAppend = false, isError = false, foundPath = false;
+            boolean isAppend = false, isError = false, foundPath = false, isBackground = false;
             List<String> parsedInput = parseInput(input);
+            int parsedInputSize = parsedInput.size();
+            if(parsedInput.get(parsedInputSize - 1).equals("&")){
+                isBackground = true;
+                parsedInput.remove(parsedInputSize - 1);
+            }
             Set<String> validSTDOperators = new HashSet<>();
             validSTDOperators.add(">"); validSTDOperators.add(">>"); validSTDOperators.add("1>"); validSTDOperators.add("1>>"); validSTDOperators.add("2>"); validSTDOperators.add("2>>");
             for(int i = parsedInput.size() - 1; i >= 0; i--){
@@ -42,6 +47,7 @@ public class Main {
             String arguments = parsedInput.size() > 1 ? parsedInput.get(1) : "";
             if (command.equals("exit")) break;
             else if (command.equals("echo")) writeOutput(String.join(" ", parsedInput.subList(1, parsedInput.size())), foundPath, targetFilePath, isAppend, isError);
+            else if(command.equals("jobs")) continue;
             else if(command.equals("pwd")){
                 writeOutput(System.getProperty("user.dir"), foundPath, targetFilePath, isAppend, isError);
             }
@@ -87,7 +93,7 @@ public class Main {
                 }
                 try{
                     Process process = processBuilder.start();
-                    process.waitFor();
+                    if(!isBackground) process.waitFor();
                 } catch(java.io.IOException e){
                     writeOutput(command + ": command not found", foundPath, targetFilePath, isAppend, isError);
                 }
