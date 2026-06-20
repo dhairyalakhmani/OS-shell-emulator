@@ -5,11 +5,25 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class Main {
+    static class Job {
+        int id;
+        Process process;
+        String command;
+
+        Job(int id, Process process, String command) {
+            this.id = id;
+            this.process = process;
+            this.command = command;
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         Set<String> set = new HashSet<>();
         set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd"); set.add("jobs");
         int jobIdCounter = 1;
+        List<Job> backgroundJobs = new ArrayList<>();
+
         while (true) {
             System.out.print("$ ");
             String input = sc.nextLine().trim();
@@ -18,12 +32,15 @@ public class Main {
             boolean isAppend = false, isError = false, foundPath = false, isBackground = false;
             List<String> parsedInput = parseInput(input);
             int parsedInputSize = parsedInput.size();
-            if(parsedInput.get(parsedInputSize - 1).equals("&")){
+
+            if (parsedInputSize > 0 && parsedInput.get(parsedInputSize - 1).equals("&")) {
                 isBackground = true;
                 parsedInput.remove(parsedInputSize - 1);
             }
+
             Set<String> validSTDOperators = new HashSet<>();
             validSTDOperators.add(">"); validSTDOperators.add(">>"); validSTDOperators.add("1>"); validSTDOperators.add("1>>"); validSTDOperators.add("2>"); validSTDOperators.add("2>>");
+
             for(int i = parsedInput.size() - 1; i >= 0; i--){
                 String currentToken = parsedInput.get(i);
                 if(validSTDOperators.contains(currentToken)){
@@ -36,6 +53,7 @@ public class Main {
                     break;
                 }
             }
+
             if (foundPath) {
                 Path path = Path.of(targetFilePath);
                 if (isAppend) {
@@ -44,11 +62,24 @@ public class Main {
                     Files.writeString(path, "", StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
                 }
             }
+
+            if (parsedInput.isEmpty()) continue;
+
             String command = parsedInput.get(0);
             String arguments = parsedInput.size() > 1 ? parsedInput.get(1) : "";
+
             if (command.equals("exit")) break;
             else if (command.equals("echo")) writeOutput(String.join(" ", parsedInput.subList(1, parsedInput.size())), foundPath, targetFilePath, isAppend, isError);
-            else if(command.equals("jobs")) continue;
+            else if(command.equals("jobs")) {
+                StringBuilder sb = new StringBuilder();
+                for (Job job : backgroundJobs) {
+                    if (job.process.isAlive()) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append(String.format("[%d]+  %-24s%s", job.id, "Running", job.command));
+                    }
+                }
+                if (sb.length() > 0) writeOutput(sb.toString(), foundPath, targetFilePath, isAppend, isError);
+            }
             else if(command.equals("pwd")){
                 writeOutput(System.getProperty("user.dir"), foundPath, targetFilePath, isAppend, isError);
             }
@@ -96,6 +127,7 @@ public class Main {
                     Process process = processBuilder.start();
                     if(isBackground) {
                         System.out.println("[" + jobIdCounter + "] " + process.pid());
+                        backgroundJobs.add(new Job(jobIdCounter, process, input));
                         jobIdCounter++;
                     } else {
                         process.waitFor();
