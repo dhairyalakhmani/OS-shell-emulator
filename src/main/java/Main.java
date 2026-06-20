@@ -88,7 +88,6 @@ public class Main {
 
             if (parsedInput.isEmpty()) continue;
 
-            // Split into Pipeline Stages
             List<List<String>> pipelineCmds = new ArrayList<>();
             List<String> currentCmd = new ArrayList<>();
             for (String token : parsedInput) {
@@ -195,7 +194,9 @@ public class Main {
                     int startExternal = i;
                     int endExternal = i;
                     while (endExternal < pipelineCmds.size() && !set.contains(pipelineCmds.get(endExternal).get(0))) {
-                        pbs.add(new ProcessBuilder(pipelineCmds.get(endExternal)));
+                        ProcessBuilder pb = new ProcessBuilder(pipelineCmds.get(endExternal));
+                        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                        pbs.add(pb);
                         endExternal++;
                     }
 
@@ -204,10 +205,15 @@ public class Main {
                     }
 
                     if (endExternal == pipelineCmds.size()) {
-                        if (foundPath && !isError) {
+                        if (foundPath) {
                             File myFile = new File(targetFilePath);
-                            if (isAppend) pbs.get(pbs.size() - 1).redirectOutput(ProcessBuilder.Redirect.appendTo(myFile));
-                            else pbs.get(pbs.size() - 1).redirectOutput(ProcessBuilder.Redirect.to(myFile));
+                            ProcessBuilder.Redirect redirect = isAppend ? ProcessBuilder.Redirect.appendTo(myFile) : ProcessBuilder.Redirect.to(myFile);
+                            if (isError) {
+                                pbs.get(pbs.size() - 1).redirectError(redirect);
+                                pbs.get(pbs.size() - 1).redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                            } else {
+                                pbs.get(pbs.size() - 1).redirectOutput(redirect);
+                            }
                         } else {
                             pbs.get(pbs.size() - 1).redirectOutput(ProcessBuilder.Redirect.INHERIT);
                         }
