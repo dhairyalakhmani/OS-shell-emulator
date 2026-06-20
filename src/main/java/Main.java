@@ -21,10 +21,28 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         Set<String> set = new HashSet<>();
         set.add("exit"); set.add("echo"); set.add("type"); set.add("pwd"); set.add("cd"); set.add("jobs");
-        int jobIdCounter = 1;
         List<Job> backgroundJobs = new ArrayList<>();
 
         while (true) {
+            Map<Integer, Character> preMarkers = new HashMap<>();
+            for (int j = 0; j < backgroundJobs.size(); j++) {
+                char m = ' ';
+                if (j == backgroundJobs.size() - 1) m = '+';
+                else if (j == backgroundJobs.size() - 2) m = '-';
+                preMarkers.put(backgroundJobs.get(j).id, m);
+            }
+
+            List<Job> preSorted = new ArrayList<>(backgroundJobs);
+            preSorted.sort(Comparator.comparingInt(j -> j.id));
+            List<Job> finished = new ArrayList<>();
+            for (Job job : preSorted) {
+                if (!job.process.isAlive()) {
+                    System.out.println(String.format("[%d]%c  %-24s%s", job.id, preMarkers.get(job.id), "Done", job.command));
+                    finished.add(job);
+                }
+            }
+            backgroundJobs.removeAll(finished);
+
             System.out.print("$ ");
             String input = sc.nextLine().trim();
             if (input.isEmpty()) continue;
@@ -72,20 +90,24 @@ public class Main {
             else if (command.equals("echo")) writeOutput(String.join(" ", parsedInput.subList(1, parsedInput.size())), foundPath, targetFilePath, isAppend, isError);
             else if(command.equals("jobs")) {
                 StringBuilder sb = new StringBuilder();
-                List<Job> activeJobs = new ArrayList<>();
-                for (Job job : backgroundJobs) {
-                    if (job.process.isAlive()) {
-                        activeJobs.add(job);
-                    }
+                List<Job> toRemove = new ArrayList<>();
+                Map<Integer, Character> markers = new HashMap<>();
+                for (int j = 0; j < backgroundJobs.size(); j++) {
+                    char m = ' ';
+                    if (j == backgroundJobs.size() - 1) m = '+';
+                    else if (j == backgroundJobs.size() - 2) m = '-';
+                    markers.put(backgroundJobs.get(j).id, m);
                 }
-                for (int j = 0; j < activeJobs.size(); j++) {
+                List<Job> sortedJobs = new ArrayList<>(backgroundJobs);
+                sortedJobs.sort(Comparator.comparingInt(j -> j.id));
+
+                for (Job job : sortedJobs) {
+                    String status = job.process.isAlive() ? "Running" : "Done";
                     if (sb.length() > 0) sb.append("\n");
-                    Job job = activeJobs.get(j);
-                    char marker = ' ';
-                    if (j == activeJobs.size() - 1) marker = '+';
-                    else if (j == activeJobs.size() - 2) marker = '-';
-                    sb.append(String.format("[%d]%c  %-24s%s", job.id, marker, "Running", job.command));
+                    sb.append(String.format("[%d]%c  %-24s%s", job.id, markers.get(job.id), status, job.command));
+                    if (!job.process.isAlive()) toRemove.add(job);
                 }
+                backgroundJobs.removeAll(toRemove);
                 if (sb.length() > 0) writeOutput(sb.toString(), foundPath, targetFilePath, isAppend, isError);
             }
             else if(command.equals("pwd")){
@@ -134,9 +156,17 @@ public class Main {
                 try{
                     Process process = processBuilder.start();
                     if(isBackground) {
-                        System.out.println("[" + jobIdCounter + "] " + process.pid());
-                        backgroundJobs.add(new Job(jobIdCounter, process, input));
-                        jobIdCounter++;
+                        int nextId = 1;
+                        while (true) {
+                            boolean idFound = false;
+                            for (Job j : backgroundJobs) {
+                                if (j.id == nextId) { idFound = true; break; }
+                            }
+                            if (!idFound) break;
+                            nextId++;
+                        }
+                        System.out.println("[" + nextId + "] " + process.pid());
+                        backgroundJobs.add(new Job(nextId, process, input));
                     } else {
                         process.waitFor();
                     }
